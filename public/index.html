@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes Dashboard - MCP Notes Server</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>📝 Notes</h1>
+        <p class="subtitle">MCP Notes Server</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <span class="stat-value" id="totalNotes">0</span>
+          <span class="stat-label">Total Notes</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="totalTags">0</span>
+          <span class="stat-label">Total Tags</span>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="🔍 Search notes..." 
+          class="search-input"
+        >
+      </div>
+
+      <div class="tags-filter" id="tagsFilter">
+        <!-- Tags will be populated here -->
+      </div>
+
+      <button class="btn btn-primary btn-create" id="createNoteBtn">
+        ➕ Create New Note
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Welcome Screen -->
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-content">
+          <h2>👋 Welcome to Your Notes Dashboard</h2>
+          <p>Create, edit, and manage your notes with ease.</p>
+          <button class="btn btn-primary btn-large" id="createFirstNote">
+            ➕ Create Your First Note
+          </button>
+        </div>
+      </div>
+
+      <!-- Notes List -->
+      <div class="notes-list" id="notesList">
+        <!-- Notes will be populated here -->
+      </div>
+
+      <!-- Note Detail View -->
+      <div class="note-detail" id="noteDetail" style="display: none;">
+        <div class="note-detail-header">
+          <button class="btn btn-secondary" id="backToList">← Back</button>
+          <div class="note-actions">
+            <button class="btn btn-secondary" id="editNoteBtn">✏️ Edit</button>
+            <button class="btn btn-danger" id="deleteNoteBtn">🗑️ Delete</button>
+          </div>
+        </div>
+        <div class="note-detail-content">
+          <h1 class="note-title" id="noteTitle"></h1>
+          <div class="note-meta">
+            <span class="note-date" id="noteDate"></span>
+            <div class="note-tags" id="noteTags"></div>
+          </div>
+          <div class="note-content-rendered" id="noteContent"></div>
+        </div>
+      </div>
+
+      <!-- Note Editor -->
+      <div class="note-editor" id="noteEditor" style="display: none;">
+        <div class="editor-header">
+          <h2 id="editorTitle">Create Note</h2>
+          <div class="editor-actions">
+            <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveNoteBtn">💾 Save</button>
+          </div>
+        </div>
+        <div class="editor-content">
+          <input 
+            type="text" 
+            id="noteTitleInput" 
+            placeholder="Note Title" 
+            class="editor-title-input"
+          >
+          <input 
+            type="text" 
+            id="noteTagsInput" 
+            placeholder="Tags (comma-separated, e.g., work, idea, urgent)" 
+            class="editor-tags-input"
+          >
+          <textarea 
+            id="noteContentInput" 
+            placeholder="Write your note here... (Markdown supported)" 
+            class="editor-textarea"
+          ></textarea>
+          <div class="editor-hint">
+            💡 Tip: You can use Markdown formatting (# headings, **bold**, *italic*, - lists, etc.)
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

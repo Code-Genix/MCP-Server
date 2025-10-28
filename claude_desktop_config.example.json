@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "notes": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/MCP-Server-1/dist/index.js"
+      ],
+      "env": {}
+    }
+  }
+}
+

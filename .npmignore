@@ -1,0 +1,11 @@
+tests/
+coverage/
+*.test.ts
+vitest.config.ts
+tsconfig.json
+.git
+.gitignore
+notes-data/
+test-notes-data/
+*.log
+

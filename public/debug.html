@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Console</title>
+  <style>
+    body { 
+      background: #1e293b; 
+      color: #f1f5f9; 
+      font-family: monospace; 
+      padding: 20px;
+    }
+    button { 
+      padding: 10px 20px; 
+      margin: 5px; 
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #log {
+      background: #0f172a;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Debug Console</h1>
+  <p>Test your API endpoints here:</p>
+  
+  <button onclick="testCreate()">Test Create Note</button>
+  <button onclick="testList()">Test List Notes</button>
+  <button onclick="testStats()">Test Stats</button>
+  <button onclick="clearLog()">Clear Log</button>
+  
+  <div id="log"></div>
+  
+  <script>
+    const log = document.getElementById('log');
+    
+    function addLog(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+    
+    function clearLog() {
+      log.innerHTML = '';
+    }
+    
+    async function testCreate() {
+      addLog('Testing CREATE note...', 'info');
+      try {
+        const response = await fetch('/api/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: 'Debug Test Note',
+            content: 'Created from debug console',
+            tags: ['debug', 'test']
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          addLog(`✅ SUCCESS: Created note "${data.data.title}" (ID: ${data.data.id})`, 'success');
+        } else {
+          addLog(`❌ FAILED: ${data.error}`, 'error');
+        }
+      } catch (error) {
+        addLog(`❌ ERROR: ${error.message}`, 'error');
+      }
+    }
+    
+    async function testList() {
+      addLog('Testing LIST notes...', 'info');
+      try {
+        const response = await fetch('/api/notes');
+        const data = await response.json();
+        
+        if (data.success) {
+          addLog(`✅ SUCCESS: Found ${data.data.length} notes`, 'success');
+          data.data.forEach(note => {
+            addLog(`  - ${note.title} [${note.tags.join(', ')}]`, 'success');
+          });
+        } else {
+          addLog(`❌ FAILED: ${data.error}`, 'error');
+        }
+      } catch (error) {
+        addLog(`❌ ERROR: ${error.message}`, 'error');
+      }
+    }
+    
+    async function testStats() {
+      addLog('Testing STATS...', 'info');
+      try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+          addLog(`✅ SUCCESS: ${data.data.totalNotes} notes, ${data.data.totalTags} tags`, 'success');
+        } else {
+          addLog(`❌ FAILED: ${data.error}`, 'error');
+        }
+      } catch (error) {
+        addLog(`❌ ERROR: ${error.message}`, 'error');
+      }
+    }
+    
+    addLog('Debug console ready. Click buttons to test API.', 'info');
+  </script>
+</body>
+</html>
