@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event Listeners
 function setupEventListeners() {
   // Create note buttons
-  document.getElementById('createNoteBtn').addEventListener('click', showEditor);
-  document.getElementById('createFirstNote').addEventListener('click', showEditor);
+  document.getElementById('createNoteBtn').addEventListener('click', () => showEditor(false));
+  document.getElementById('createFirstNote').addEventListener('click', () => showEditor(false));
   
   // Editor actions
   document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
@@ -221,20 +221,28 @@ async function viewNote(id) {
 
 function showEditor(isEdit = false) {
   if (isEdit && currentNote) {
+    // Edit mode - populate with current note data
     document.getElementById('editorTitle').textContent = 'Edit Note';
     document.getElementById('noteTitleInput').value = currentNote.title;
     document.getElementById('noteContentInput').value = currentNote.content;
     document.getElementById('noteTagsInput').value = currentNote.tags.join(', ');
     editingNoteId = currentNote.id;
   } else {
+    // Create mode - clear form
     document.getElementById('editorTitle').textContent = 'Create Note';
     document.getElementById('noteTitleInput').value = '';
     document.getElementById('noteContentInput').value = '';
     document.getElementById('noteTagsInput').value = '';
     editingNoteId = null;
+    currentNote = null; // Clear current note state
   }
   
   showView('editor');
+  
+  // Focus on title input for better UX
+  setTimeout(() => {
+    document.getElementById('noteTitleInput').focus();
+  }, 100);
 }
 
 async function saveNote() {
