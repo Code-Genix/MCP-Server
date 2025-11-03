@@ -4,9 +4,12 @@ A Model Context Protocol (MCP) server for managing notes with full CRUD operatio
 
 **✨ NEW:** Now includes a beautiful **Web Dashboard** for managing your notes in the browser!
 
+**🚀 NEWEST:** **ChatGPT Integration** - Use ChatGPT to manage your notes with natural language!
+
 - 🤖 **MCP Server**: Let Claude manage your notes
+- 💬 **ChatGPT**: Use ChatGPT with OpenAI function calling
 - 🌐 **Web Dashboard**: Visual interface at `http://localhost:3000`
-- 💾 **Shared Storage**: Both use the same notes
+- 💾 **Shared Storage**: All interfaces use the same notes
 
 ## Features
 
@@ -56,6 +59,9 @@ npm start
 # Web Dashboard (for browser)
 npm run web
 
+# ChatGPT Integration (interactive terminal)
+npm run chatgpt
+
 # Development mode with auto-reload
 npm run dev:server  # MCP server
 npm run web:dev     # Web dashboard
@@ -63,6 +69,18 @@ npm run web:dev     # Web dashboard
 # Test the server interactively
 npx tsx test-client.ts
 ```
+
+### 💬 Using ChatGPT Integration
+
+**Quick Start:**
+
+1. Get an OpenAI API key from https://platform.openai.com/api-keys
+2. Set your API key: `export OPENAI_API_KEY="sk-..."`
+3. Start the notes server: `npm run web`
+4. Start ChatGPT integration: `npm run chatgpt`
+5. Chat naturally: "Create a note about my meeting tomorrow"
+
+📖 **See [QUICKSTART-CHATGPT.md](./QUICKSTART-CHATGPT.md) for the complete guide!**
 
 ### 🌐 Using the Web Dashboard
 
@@ -74,7 +92,8 @@ npm run web
 ```
 
 📖 **See [WEB-DASHBOARD.md](./WEB-DASHBOARD.md) for the complete web interface guide.**  
-📖 **See [RUNNING.md](./RUNNING.md) for detailed MCP server instructions.**
+📖 **See [RUNNING.md](./RUNNING.md) for detailed MCP server instructions.**  
+📖 **See [QUICKSTART-CHATGPT.md](./QUICKSTART-CHATGPT.md) for ChatGPT integration!** ⚡️
 
 ### Configuration with Claude Desktop
 
@@ -232,6 +251,8 @@ npm run test:coverage
 - `npm run build` - Compile TypeScript to JavaScript
 - `npm run dev` - Watch mode for development
 - `npm start` - Start the MCP server
+- `npm run web` - Start the web dashboard
+- `npm run chatgpt` - Start ChatGPT integration
 - `npm test` - Run tests once
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Generate coverage report
