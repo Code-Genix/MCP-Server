@@ -19,7 +19,7 @@ import readline from 'readline';
 
 // Configuration
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "sk-your-api-key-here"; // 👈 Paste your key here
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
   console.error('❌ Error: OPENAI_API_KEY environment variable is not set.');
