@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const NOTES_API = process.env.NOTES_API_URL || 'http://localhost:3000';
 
+// Helper function to fetch with timeout
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 5000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout: ${url}`);
+    }
+    throw error;
+  }
+}
+
 /**
  * MCP Server Route - Official ChatGPT Apps SDK Pattern
  * Based on: https://github.com/vercel-labs/chatgpt-apps-sdk-nextjs-starter
@@ -9,13 +30,27 @@ const NOTES_API = process.env.NOTES_API_URL || 'http://localhost:3000';
 
 export async function POST(request: NextRequest) {
   try {
+    // Log request headers for debugging
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+    console.log('📨 Request headers:', headers);
+
     let body;
     try {
       body = await request.json();
     } catch (parseError) {
       console.error('❌ Failed to parse JSON:', parseError);
       return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: {
+            code: -32700,
+            message: 'Parse error: Invalid JSON',
+          },
+        },
         { status: 400 }
       );
     }
@@ -25,10 +60,22 @@ export async function POST(request: NextRequest) {
     console.log('📨 MCP Request:', { method, params, jsonrpc, id });
     console.log('📨 Full body:', JSON.stringify(body, null, 2));
 
+    // Validate required fields
+    if (!method) {
+      return NextResponse.json({
+        jsonrpc: jsonrpc || '2.0',
+        id: id || null,
+        error: {
+          code: -32600,
+          message: 'Invalid Request: method is required',
+        },
+      });
+    }
+
     // Handle initialize request (required for MCP protocol)
     if (method === 'initialize') {
       console.log('✅ Handling initialize request');
-      return NextResponse.json({
+      const response = NextResponse.json({
         jsonrpc: jsonrpc || '2.0',
         id: id || 1,
         result: {
@@ -42,6 +89,12 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+      
+      // Ensure CORS headers
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      response.headers.set('Content-Type', 'application/json');
+      
+      return response;
     }
 
     // Handle tools/list request
@@ -133,6 +186,12 @@ export async function POST(request: NextRequest) {
         ],
         },
       });
+      
+      // Ensure CORS headers
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      response.headers.set('Content-Type', 'application/json');
+      
+      return response;
     }
 
     // Handle tools/call request
@@ -140,16 +199,36 @@ export async function POST(request: NextRequest) {
       const { name, arguments: args } = params;
 
       console.log('🔧 Calling tool:', name, args);
+      console.log('🔗 Notes API URL:', NOTES_API);
+
+      // Check if notes API is configured
+      if (!process.env.NOTES_API_URL && NOTES_API.includes('localhost')) {
+        return NextResponse.json({
+          jsonrpc: jsonrpc || '2.0',
+          id: id || 1,
+          error: {
+            code: -32603,
+            message: 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel.',
+            data: {
+              hint: 'Set NOTES_API_URL in Vercel project settings to your notes backend URL',
+            },
+          },
+        });
+      }
 
       let result;
 
       switch (name) {
         case 'create_note': {
-          const response = await fetch(`${NOTES_API}/api/notes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(args),
-          });
+          const response = await fetchWithTimeout(
+            `${NOTES_API}/api/notes`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(args),
+            },
+            5000
+          );
 
           if (!response.ok) {
             throw new Error(`Failed to create note: ${response.statusText}`);
@@ -173,7 +252,7 @@ export async function POST(request: NextRequest) {
         }
 
         case 'list_notes': {
-          const response = await fetch(`${NOTES_API}/api/notes`);
+          const response = await fetchWithTimeout(`${NOTES_API}/api/notes`, {}, 5000);
 
           if (!response.ok) {
             throw new Error(`Failed to list notes: ${response.statusText}`);
@@ -218,7 +297,7 @@ export async function POST(request: NextRequest) {
         }
 
         case 'get_note': {
-          const response = await fetch(`${NOTES_API}/api/notes/${args.id}`);
+          const response = await fetchWithTimeout(`${NOTES_API}/api/notes/${args.id}`, {}, 5000);
 
           if (!response.ok) {
             if (response.status === 404) {
@@ -252,11 +331,15 @@ export async function POST(request: NextRequest) {
         }
 
         case 'search_notes': {
-          const response = await fetch(`${NOTES_API}/api/notes/search`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(args),
-          });
+          const response = await fetchWithTimeout(
+            `${NOTES_API}/api/notes/search`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(args),
+            },
+            5000
+          );
 
           if (!response.ok) {
             throw new Error(`Failed to search notes: ${response.statusText}`);
@@ -303,11 +386,15 @@ export async function POST(request: NextRequest) {
         case 'update_note': {
           const { id, ...updates } = args;
 
-          const response = await fetch(`${NOTES_API}/api/notes/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates),
-          });
+          const response = await fetchWithTimeout(
+            `${NOTES_API}/api/notes/${id}`,
+            {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updates),
+            },
+            5000
+          );
 
           if (!response.ok) {
             if (response.status === 404) {
@@ -341,9 +428,13 @@ export async function POST(request: NextRequest) {
         }
 
         case 'delete_note': {
-          const response = await fetch(`${NOTES_API}/api/notes/${args.id}`, {
-            method: 'DELETE',
-          });
+          const response = await fetchWithTimeout(
+            `${NOTES_API}/api/notes/${args.id}`,
+            {
+              method: 'DELETE',
+            },
+            5000
+          );
 
           if (!response.ok) {
             if (response.status === 404) {
@@ -412,12 +503,23 @@ export async function POST(request: NextRequest) {
 /**
  * GET /mcp - Health check / Server info
  */
-export async function GET() {
-  return NextResponse.json({
-    name: 'notes-mcp-server',
-    version: '1.0.0',
-    description: 'MCP Notes Server for ChatGPT',
-    protocol: 'mcp',
-  });
+export async function GET(request: NextRequest) {
+  console.log('📨 GET request to /mcp');
+  
+  return NextResponse.json(
+    {
+      name: 'notes-mcp-server',
+      version: '1.0.0',
+      description: 'MCP Notes Server for ChatGPT',
+      protocol: 'mcp',
+      status: 'ok',
+    },
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 }
 
