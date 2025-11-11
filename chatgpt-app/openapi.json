@@ -1,0 +1,39 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Notes MCP API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://semaj-noncivilizable-jayse.ngrok-free.dev"
+    }
+  ],
+  "paths": {
+    "/api/mcp": {
+      "post": {
+        "operationId": "callMCP",
+        "summary": "Call MCP endpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "method": { "type": "string" },
+                  "params": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    }
+  }
+}
+
+

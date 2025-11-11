@@ -15,6 +15,8 @@
     "web": "tsx src/web-server.ts",
     "web:dev": "tsx watch src/web-server.ts",
     "chatgpt": "tsx chatgpt-integration.ts",
+    "app-server": "tsx src/app-server.ts",
+    "app-server:dev": "tsx watch src/app-server.ts",
     "inspector": "node --inspect dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",

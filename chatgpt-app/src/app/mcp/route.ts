@@ -1,0 +1,423 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+const NOTES_API = process.env.NOTES_API_URL || 'http://localhost:3000';
+
+/**
+ * MCP Server Route - Official ChatGPT Apps SDK Pattern
+ * Based on: https://github.com/vercel-labs/chatgpt-apps-sdk-nextjs-starter
+ */
+
+export async function POST(request: NextRequest) {
+  try {
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { method, params, jsonrpc, id } = body;
+
+    console.log('📨 MCP Request:', { method, params, jsonrpc, id });
+    console.log('📨 Full body:', JSON.stringify(body, null, 2));
+
+    // Handle initialize request (required for MCP protocol)
+    if (method === 'initialize') {
+      console.log('✅ Handling initialize request');
+      return NextResponse.json({
+        jsonrpc: jsonrpc || '2.0',
+        id: id || 1,
+        result: {
+          protocolVersion: '2024-11-05',
+          serverInfo: {
+            name: 'notes-mcp-server',
+            version: '1.0.0',
+          },
+          capabilities: {
+            tools: {},
+          },
+        },
+      });
+    }
+
+    // Handle tools/list request
+    if (method === 'tools/list') {
+      console.log('✅ Handling tools/list request');
+      return NextResponse.json({
+        tools: [
+          {
+            name: 'create_note',
+            description: 'Create a new note with title, content, and optional tags',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                title: { type: 'string', description: 'The title of the note' },
+                content: { type: 'string', description: 'The content (supports markdown)' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Optional tags',
+                },
+              },
+              required: ['title', 'content'],
+            },
+          },
+          {
+            name: 'list_notes',
+            description: 'List all notes',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+          {
+            name: 'get_note',
+            description: 'Get a specific note by ID',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', description: 'Note ID' },
+              },
+              required: ['id'],
+            },
+          },
+          {
+            name: 'search_notes',
+            description: 'Search notes by query',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                query: { type: 'string', description: 'Search query' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Optional tags filter',
+                },
+              },
+              required: ['query'],
+            },
+          },
+          {
+            name: 'update_note',
+            description: 'Update an existing note',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', description: 'Note ID' },
+                title: { type: 'string', description: 'New title (optional)' },
+                content: { type: 'string', description: 'New content (optional)' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'New tags (optional)',
+                },
+              },
+              required: ['id'],
+            },
+          },
+          {
+            name: 'delete_note',
+            description: 'Delete a note by ID',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', description: 'Note ID' },
+              },
+              required: ['id'],
+            },
+          },
+        ],
+        },
+      });
+    }
+
+    // Handle tools/call request
+    if (method === 'tools/call') {
+      const { name, arguments: args } = params;
+
+      console.log('🔧 Calling tool:', name, args);
+
+      let result;
+
+      switch (name) {
+        case 'create_note': {
+          const response = await fetch(`${NOTES_API}/api/notes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to create note: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const note = result.data;
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `✓ Created note: "${note.title}"${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`,
+                },
+              ],
+            },
+          });
+        }
+
+        case 'list_notes': {
+          const response = await fetch(`${NOTES_API}/api/notes`);
+
+          if (!response.ok) {
+            throw new Error(`Failed to list notes: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const notes = result.data;
+
+          if (notes.length === 0) {
+            return NextResponse.json({
+              jsonrpc: jsonrpc || '2.0',
+              id: id || 1,
+              result: {
+                content: [
+                  {
+                    type: 'text',
+                    text: '📭 No notes yet. Create your first note!',
+                  },
+                ],
+              },
+            });
+          }
+
+          const notesList = notes
+            .map((note: any, index: number) => 
+              `${index + 1}. **${note.title}**${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`
+            )
+            .join('\n');
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `📚 Found ${notes.length} note${notes.length !== 1 ? 's' : ''}:\n\n${notesList}`,
+                },
+              ],
+            },
+          });
+        }
+
+        case 'get_note': {
+          const response = await fetch(`${NOTES_API}/api/notes/${args.id}`);
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              return NextResponse.json({
+                jsonrpc: jsonrpc || '2.0',
+                id: id || 1,
+                error: {
+                  code: -32001,
+                  message: 'Note not found',
+                },
+              });
+            }
+            throw new Error(`Failed to get note: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const note = result.data;
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `# ${note.title}\n\n${note.content}\n\n${note.tags.length > 0 ? `🏷️ Tags: ${note.tags.join(', ')}` : ''}`,
+                },
+              ],
+            },
+          });
+        }
+
+        case 'search_notes': {
+          const response = await fetch(`${NOTES_API}/api/notes/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to search notes: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const notes = result.data;
+
+          if (notes.length === 0) {
+            return NextResponse.json({
+              jsonrpc: jsonrpc || '2.0',
+              id: id || 1,
+              result: {
+                content: [
+                  {
+                    type: 'text',
+                    text: `🔍 No results found for "${args.query}"`,
+                  },
+                ],
+              },
+            });
+          }
+
+          const resultsList = notes
+            .map((note: any, index: number) => 
+              `${index + 1}. **${note.title}** - ${note.content.substring(0, 60)}...`
+            )
+            .join('\n');
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `🔍 Found ${notes.length} result${notes.length !== 1 ? 's' : ''} for "${args.query}":\n\n${resultsList}`,
+                },
+              ],
+            },
+          });
+        }
+
+        case 'update_note': {
+          const { id, ...updates } = args;
+
+          const response = await fetch(`${NOTES_API}/api/notes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              return NextResponse.json({
+                jsonrpc: jsonrpc || '2.0',
+                id: id || 1,
+                error: {
+                  code: -32001,
+                  message: 'Note not found',
+                },
+              });
+            }
+            throw new Error(`Failed to update note: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const note = result.data;
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `✓ Updated note: "${note.title}"`,
+                },
+              ],
+            },
+          });
+        }
+
+        case 'delete_note': {
+          const response = await fetch(`${NOTES_API}/api/notes/${args.id}`, {
+            method: 'DELETE',
+          });
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              return NextResponse.json({
+                jsonrpc: jsonrpc || '2.0',
+                id: id || 1,
+                error: {
+                  code: -32001,
+                  message: 'Note not found',
+                },
+              });
+            }
+            throw new Error(`Failed to delete note: ${response.statusText}`);
+          }
+
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: '✓ Note deleted successfully',
+                },
+              ],
+            },
+          });
+        }
+
+        default:
+          return NextResponse.json({
+            jsonrpc: jsonrpc || '2.0',
+            id: id || 1,
+            error: {
+              code: -32601,
+              message: `Unknown tool: ${name}`,
+            },
+          });
+      }
+    }
+
+    // Unknown method
+    return NextResponse.json({
+      jsonrpc: jsonrpc || '2.0',
+      id: id || 1,
+      error: {
+        code: -32601,
+        message: `Unknown method: ${method}`,
+      },
+    });
+  } catch (error) {
+    console.error('❌ MCP Error:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: 1,
+      error: {
+        code: -32603,
+        message: error instanceof Error ? error.message : 'Internal error',
+        data: error instanceof Error ? error.stack : String(error),
+      },
+    });
+  }
+}
+
+/**
+ * GET /mcp - Health check / Server info
+ */
+export async function GET() {
+  return NextResponse.json({
+    name: 'notes-mcp-server',
+    version: '1.0.0',
+    description: 'MCP Notes Server for ChatGPT',
+    protocol: 'mcp',
+  });
+}
+

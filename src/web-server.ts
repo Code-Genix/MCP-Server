@@ -12,8 +12,6 @@ import {
   CreateNoteSchema,
   UpdateNoteSchema,
   SearchNotesSchema,
-  DeleteNoteSchema,
-  GetNoteSchema,
 } from './types.js';
 import { z } from 'zod';
 import path from 'path';
@@ -31,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 // Logging middleware to see requests in terminal
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   const timestamp = new Date().toLocaleTimeString();
   console.log(`[${timestamp}] ${req.method} ${req.path}`);
   next();
@@ -47,14 +45,14 @@ await storage.initialize();
 /**
  * GET /api/notes - List all notes (metadata only)
  */
-app.get('/api/notes', async (req, res) => {
+app.get('/api/notes', async (_req, res) => {
   try {
     const notes = await storage.listNotes();
     console.log(`   ✅ Retrieved ${notes.length} notes`);
-    res.json({ success: true, data: notes });
+    return res.json({ success: true, data: notes });
   } catch (error) {
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -78,10 +76,10 @@ app.get('/api/notes/:id', async (req, res) => {
     }
     
     console.log(`   ✅ Retrieved note: "${note.title}"`);
-    res.json({ success: true, data: note });
+    return res.json({ success: true, data: note });
   } catch (error) {
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -96,7 +94,7 @@ app.post('/api/notes', async (req, res) => {
     const input = CreateNoteSchema.parse(req.body);
     const note = await storage.createNote(input);
     console.log(`   ✅ Created note: "${note.title}" [${note.tags.join(', ')}]`);
-    res.status(201).json({ success: true, data: note });
+    return res.status(201).json({ success: true, data: note });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('   ❌ Validation error:', error.errors);
@@ -107,7 +105,7 @@ app.post('/api/notes', async (req, res) => {
       });
     }
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -132,7 +130,7 @@ app.put('/api/notes/:id', async (req, res) => {
     }
     
     console.log(`   ✅ Updated note: "${note.title}"`);
-    res.json({ success: true, data: note });
+    return res.json({ success: true, data: note });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('   ❌ Validation error:', error.errors);
@@ -143,7 +141,7 @@ app.put('/api/notes/:id', async (req, res) => {
       });
     }
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -167,10 +165,10 @@ app.delete('/api/notes/:id', async (req, res) => {
     }
     
     console.log(`   🗑️  Deleted note: ${id}`);
-    res.json({ success: true, message: 'Note deleted successfully' });
+    return res.json({ success: true, message: 'Note deleted successfully' });
   } catch (error) {
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -185,7 +183,7 @@ app.post('/api/notes/search', async (req, res) => {
     const input = SearchNotesSchema.parse(req.body);
     const notes = await storage.searchNotes(input.query, input.tags);
     console.log(`   🔍 Search "${input.query}" found ${notes.length} notes`);
-    res.json({ success: true, data: notes });
+    return res.json({ success: true, data: notes });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('   ❌ Validation error:', error.errors);
@@ -196,7 +194,7 @@ app.post('/api/notes/search', async (req, res) => {
       });
     }
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -206,14 +204,14 @@ app.post('/api/notes/search', async (req, res) => {
 /**
  * GET /api/tags - Get all unique tags
  */
-app.get('/api/tags', async (req, res) => {
+app.get('/api/tags', async (_req, res) => {
   try {
     const tags = await storage.getAllTags();
     console.log(`   ✅ Retrieved ${tags.length} tags`);
-    res.json({ success: true, data: tags });
+    return res.json({ success: true, data: tags });
   } catch (error) {
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
@@ -223,14 +221,14 @@ app.get('/api/tags', async (req, res) => {
 /**
  * GET /api/stats - Get statistics
  */
-app.get('/api/stats', async (req, res) => {
+app.get('/api/stats', async (_req, res) => {
   try {
     const notes = await storage.listNotes();
     const tags = await storage.getAllTags();
     
     console.log(`   📊 Stats: ${notes.length} notes, ${tags.length} tags`);
     
-    res.json({ 
+    return res.json({ 
       success: true, 
       data: {
         totalNotes: notes.length,
@@ -242,7 +240,7 @@ app.get('/api/stats', async (req, res) => {
     });
   } catch (error) {
     console.error('   ❌ Error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
