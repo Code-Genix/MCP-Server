@@ -29,44 +29,36 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout 
  */
 
 export async function POST(request: NextRequest) {
-  // Set a timeout for the entire request
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Request timeout')), 8000);
-  });
-
   try {
-    // Race between the actual request and timeout
-    await Promise.race([
-      (async () => {
-        // Log request headers for debugging
-        const headers: Record<string, string> = {};
-        request.headers.forEach((value, key) => {
-          headers[key] = value;
-        });
-        console.log('📨 Request headers:', headers);
+    // Log request headers for debugging
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+    console.log('📨 Request headers:', headers);
 
-        let body;
-        try {
-          body = await request.json();
-        } catch (parseError) {
-          console.error('❌ Failed to parse JSON:', parseError);
-          return NextResponse.json(
-            {
-              jsonrpc: '2.0',
-              id: null,
-              error: {
-                code: -32700,
-                message: 'Parse error: Invalid JSON',
-              },
-            },
-            { status: 400 }
-          );
-        }
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON:', parseError);
+      return NextResponse.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: {
+            code: -32700,
+            message: 'Parse error: Invalid JSON',
+          },
+        },
+        { status: 400 }
+      );
+    }
 
-        const { method, params, jsonrpc, id } = body;
+    const { method, params, jsonrpc, id } = body;
 
-        console.log('📨 MCP Request:', { method, params, jsonrpc, id });
-        console.log('📨 Full body:', JSON.stringify(body, null, 2));
+    console.log('📨 MCP Request:', { method, params, jsonrpc, id });
+    console.log('📨 Full body:', JSON.stringify(body, null, 2));
 
     // Validate required fields
     if (!method) {
