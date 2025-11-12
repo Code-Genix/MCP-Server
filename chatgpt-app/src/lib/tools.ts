@@ -16,41 +16,48 @@ export async function handleCreateNote(
   args: { title: string; content: string; tags?: string[] },
   request: NextRequest
 ): Promise<NextResponse> {
-  const response = await fetchWithTimeout(
-    `${NOTES_API}/api/notes`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-    },
-    5000
-  );
+  try {
+    const response = await fetchWithTimeout(
+      `${NOTES_API}/api/notes`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(args),
+      },
+      5000
+    );
 
-  if (!response.ok) {
-    throw new Error(`Failed to create note: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      console.error(`❌ Notes API error: ${response.status} ${errorText}`);
+      throw new Error(`Failed to create note: ${response.status} ${errorText}`);
+    }
+
+    const result: NotesAPIResponse = await response.json();
+    const note = result.data as Note;
+    const baseUrl = getBaseUrl(request);
+    const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: 1,
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: `✓ Created note: "${note.title}"${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`,
+          },
+          {
+            type: 'widget',
+            url: widgetUrl,
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    console.error('❌ Error in handleCreateNote:', error);
+    throw error;
   }
-
-  const result: NotesAPIResponse = await response.json();
-  const note = result.data as Note;
-  const baseUrl = getBaseUrl(request);
-  const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-
-  return NextResponse.json({
-    jsonrpc: '2.0',
-    id: 1,
-    result: {
-      content: [
-        {
-          type: 'text',
-          text: `✓ Created note: "${note.title}"${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`,
-        },
-        {
-          type: 'widget',
-          url: widgetUrl,
-        },
-      ],
-    },
-  });
 }
 
 /**

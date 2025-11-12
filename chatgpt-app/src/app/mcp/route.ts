@@ -166,16 +166,13 @@ async function handleToolsCall(
 ): Promise<NextResponse> {
   const { name, arguments: args } = params;
 
-  // Check if notes API is configured (for production)
-  if (!process.env.NOTES_API_URL && process.env.NODE_ENV === 'production') {
-    return NextResponse.json({
-      jsonrpc: jsonrpc || '2.0',
-      id: id || 1,
-      error: {
-        code: -32603,
-        message: 'Notes API not configured. Please set NOTES_API_URL environment variable.',
-      },
-    });
+  // Check if notes API is accessible
+  const notesApiUrl = process.env.NOTES_API_URL || 'http://localhost:3000';
+  console.log(`📡 Using Notes API: ${notesApiUrl}`);
+  
+  // Warn if using localhost in production-like environment
+  if (notesApiUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ WARNING: Using localhost for Notes API in production. This will not work!');
   }
 
   try {
