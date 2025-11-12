@@ -44,20 +44,20 @@ export async function handleCreateNote(
       },
     ];
     
-    // Temporarily disable widgets to avoid 424 errors
-    // Widgets can be re-enabled once ChatGPT widget fetching is stable
-    // try {
-    //   const baseUrl = getBaseUrl(request);
-    //   if (baseUrl && !baseUrl.includes('localhost')) {
-    //     const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-    //     content.push({
-    //       type: 'widget',
-    //       url: widgetUrl,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.warn('⚠️ Could not create widget URL:', error);
-    // }
+    // Add widget for visual display
+    try {
+      const baseUrl = getBaseUrl(request);
+      if (baseUrl && !baseUrl.includes('localhost')) {
+        const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not create widget URL:', error);
+      // Continue without widget - operation still succeeds
+    }
 
     return NextResponse.json({
       jsonrpc: '2.0',
@@ -102,8 +102,20 @@ export async function handleListNotes(
     });
   }
   
-  // Temporarily disable widgets to avoid 424 errors
-  // Widgets can be re-enabled once ChatGPT widget fetching is stable
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+    // Continue without widget - operation still succeeds
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -147,7 +159,20 @@ export async function handleGetNote(
     },
   ];
   
-  // Widgets temporarily disabled to avoid 424 errors
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+    // Continue without widget - operation still succeeds
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -196,7 +221,20 @@ export async function handleSearchNotes(
     });
   }
   
-  // Widgets temporarily disabled to avoid 424 errors
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+    // Continue without widget - operation still succeeds
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -249,7 +287,20 @@ export async function handleUpdateNote(
     },
   ];
   
-  // Widgets temporarily disabled to avoid 424 errors
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+    // Continue without widget - operation still succeeds
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
