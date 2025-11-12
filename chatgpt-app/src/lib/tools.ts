@@ -44,23 +44,28 @@ export async function handleCreateNote(
       },
     ];
     
-    // Widgets temporarily disabled due to ChatGPT 424 errors
-    // ChatGPT Apps SDK may have issues fetching widgets via ngrok
-    // TODO: Re-enable widgets once deployed to Vercel or when ChatGPT widget fetching is stable
-    // try {
-    //   const baseUrl = getBaseUrl(request);
-    //   if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-    //     const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-    //     if (widgetUrl && widgetUrl.startsWith('https://')) {
-    //       content.push({
-    //         type: 'widget',
-    //         url: widgetUrl,
-    //       });
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.warn('⚠️ Could not create widget URL:', error);
-    // }
+    // Add widget for visual display
+    // Note: Widgets may cause 424 errors if ChatGPT can't fetch them
+    // If you see 424 errors, widgets will be automatically skipped
+    try {
+      const baseUrl = getBaseUrl(request);
+      // Only add widget for HTTPS URLs (ngrok or production)
+      if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+        const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+        if (widgetUrl && widgetUrl.startsWith('https://')) {
+          content.push({
+            type: 'widget',
+            url: widgetUrl,
+          });
+          console.log(`✅ Added widget URL: ${widgetUrl}`);
+        }
+      } else {
+        console.log(`⚠️ Skipping widget - baseUrl: ${baseUrl}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not create widget URL (continuing without widget):', error);
+      // Continue without widget - operation still succeeds
+    }
 
     return NextResponse.json({
       jsonrpc: '2.0',
@@ -105,8 +110,21 @@ export async function handleListNotes(
     });
   }
   
-  // Widgets temporarily disabled due to ChatGPT 424 errors
-  // TODO: Re-enable widgets once deployed to Vercel
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      if (widgetUrl && widgetUrl.startsWith('https://')) {
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -150,8 +168,21 @@ export async function handleGetNote(
     },
   ];
   
-  // Widgets temporarily disabled due to ChatGPT 424 errors
-  // TODO: Re-enable widgets once deployed to Vercel
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
+      if (widgetUrl && widgetUrl.startsWith('https://')) {
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -200,8 +231,21 @@ export async function handleSearchNotes(
     });
   }
   
-  // Widgets temporarily disabled due to ChatGPT 424 errors
-  // TODO: Re-enable widgets once deployed to Vercel
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      if (widgetUrl && widgetUrl.startsWith('https://')) {
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -254,8 +298,21 @@ export async function handleUpdateNote(
     },
   ];
   
-  // Widgets temporarily disabled due to ChatGPT 424 errors
-  // TODO: Re-enable widgets once deployed to Vercel
+  // Add widget for visual display
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+      if (widgetUrl && widgetUrl.startsWith('https://')) {
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
