@@ -37,8 +37,12 @@ export async function GET(request: NextRequest) {
 </html>`;
       return new NextResponse(html, {
         headers: {
-          'Content-Type': 'text/html',
+          'Content-Type': 'text/html; charset=utf-8',
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+          'X-Frame-Options': 'ALLOWALL',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
       });
     }
@@ -80,12 +84,24 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(html, {
       headers: {
-        'Content-Type': 'text/html',
+        'Content-Type': 'text/html; charset=utf-8',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+        'X-Frame-Options': 'ALLOWALL',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: `Error rendering widget: ${error}` }, { status: 500 });
+    // Return simple HTML error instead of JSON
+    const errorHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><div style="padding:20px;text-align:center;color:#666;">Unable to display notes widget</div></body></html>`;
+    return new NextResponse(errorHtml, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 }
 

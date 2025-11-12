@@ -39,12 +39,38 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(html, {
       headers: {
-        'Content-Type': 'text/html',
+        'Content-Type': 'text/html; charset=utf-8',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+        'X-Frame-Options': 'ALLOWALL',
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: `Error rendering widget: ${error}` }, { status: 500 });
+    // Return a simple HTML error page instead of JSON to avoid breaking ChatGPT
+    const errorHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+    .error { background: white; border-radius: 8px; padding: 20px; text-align: center; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="error">Unable to display note widget</div>
+</body>
+</html>`;
+    return new NextResponse(errorHtml, {
+      status: 200, // Return 200 instead of 500 to avoid breaking ChatGPT
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 }
 

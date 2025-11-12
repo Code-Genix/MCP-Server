@@ -44,20 +44,23 @@ export async function handleCreateNote(
       },
     ];
     
-    // Add widget for visual display
-    try {
-      const baseUrl = getBaseUrl(request);
-      if (baseUrl && !baseUrl.includes('localhost')) {
-        const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-        content.push({
-          type: 'widget',
-          url: widgetUrl,
-        });
-      }
-    } catch (error) {
-      console.warn('⚠️ Could not create widget URL:', error);
-      // Continue without widget - operation still succeeds
-    }
+    // Widgets temporarily disabled due to ChatGPT 424 errors
+    // ChatGPT Apps SDK may have issues fetching widgets via ngrok
+    // TODO: Re-enable widgets once deployed to Vercel or when ChatGPT widget fetching is stable
+    // try {
+    //   const baseUrl = getBaseUrl(request);
+    //   if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+    //     const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+    //     if (widgetUrl && widgetUrl.startsWith('https://')) {
+    //       content.push({
+    //         type: 'widget',
+    //         url: widgetUrl,
+    //       });
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.warn('⚠️ Could not create widget URL:', error);
+    // }
 
     return NextResponse.json({
       jsonrpc: '2.0',
@@ -102,20 +105,8 @@ export async function handleListNotes(
     });
   }
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-      content.push({
-        type: 'widget',
-        url: widgetUrl,
-      });
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-    // Continue without widget - operation still succeeds
-  }
+  // Widgets temporarily disabled due to ChatGPT 424 errors
+  // TODO: Re-enable widgets once deployed to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -159,20 +150,8 @@ export async function handleGetNote(
     },
   ];
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
-      content.push({
-        type: 'widget',
-        url: widgetUrl,
-      });
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-    // Continue without widget - operation still succeeds
-  }
+  // Widgets temporarily disabled due to ChatGPT 424 errors
+  // TODO: Re-enable widgets once deployed to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -221,20 +200,8 @@ export async function handleSearchNotes(
     });
   }
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-      content.push({
-        type: 'widget',
-        url: widgetUrl,
-      });
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-    // Continue without widget - operation still succeeds
-  }
+  // Widgets temporarily disabled due to ChatGPT 424 errors
+  // TODO: Re-enable widgets once deployed to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -287,20 +254,8 @@ export async function handleUpdateNote(
     },
   ];
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
-      content.push({
-        type: 'widget',
-        url: widgetUrl,
-      });
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-    // Continue without widget - operation still succeeds
-  }
+  // Widgets temporarily disabled due to ChatGPT 424 errors
+  // TODO: Re-enable widgets once deployed to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
