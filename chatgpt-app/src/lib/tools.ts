@@ -35,23 +35,35 @@ export async function handleCreateNote(
 
     const result: NotesAPIResponse = await response.json();
     const note = result.data as Note;
-    const baseUrl = getBaseUrl(request);
-    const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+    
+    // Build response content
+    const content: Array<{ type: string; text?: string; url?: string }> = [
+      {
+        type: 'text',
+        text: `✓ Created note: "${note.title}"${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`,
+      },
+    ];
+    
+    // Add widget if base URL is available (not localhost from external requests)
+    try {
+      const baseUrl = getBaseUrl(request);
+      if (baseUrl && !baseUrl.includes('localhost')) {
+        const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+        content.push({
+          type: 'widget',
+          url: widgetUrl,
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not create widget URL:', error);
+      // Continue without widget
+    }
 
     return NextResponse.json({
       jsonrpc: '2.0',
       id: 1,
       result: {
-        content: [
-          {
-            type: 'text',
-            text: `✓ Created note: "${note.title}"${note.tags.length > 0 ? ` (${note.tags.join(', ')})` : ''}`,
-          },
-          {
-            type: 'widget',
-            url: widgetUrl,
-          },
-        ],
+        content,
       },
     });
   } catch (error) {
@@ -74,42 +86,42 @@ export async function handleListNotes(
 
   const result: NotesAPIResponse = await response.json();
   const notes = result.data as Note[];
-  const baseUrl = getBaseUrl(request);
-  const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-
+  
+  // Build response content
+  const content: Array<{ type: string; text?: string; url?: string }> = [];
+  
   if (notes.length === 0) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: 1,
-      result: {
-        content: [
-          {
-            type: 'text',
-            text: '📭 No notes yet. Create your first note!',
-          },
-          {
-            type: 'widget',
-            url: widgetUrl,
-          },
-        ],
-      },
+    content.push({
+      type: 'text',
+      text: '📭 No notes yet. Create your first note!',
     });
+  } else {
+    content.push({
+      type: 'text',
+      text: `📚 Found ${notes.length} note${notes.length !== 1 ? 's' : ''}`,
+    });
+  }
+  
+  // Add widget if base URL is available (not localhost from external requests)
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+    // Continue without widget
   }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id: 1,
     result: {
-      content: [
-        {
-          type: 'text',
-          text: `📚 Found ${notes.length} note${notes.length !== 1 ? 's' : ''}`,
-        },
-        {
-          type: 'widget',
-          url: widgetUrl,
-        },
-      ],
+      content,
     },
   });
 }
@@ -139,23 +151,32 @@ export async function handleGetNote(
 
   const result: NotesAPIResponse = await response.json();
   const note = result.data as Note;
-  const baseUrl = getBaseUrl(request);
-  const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
+  
+  const content: Array<{ type: string; text?: string; url?: string }> = [
+    {
+      type: 'text',
+      text: `📝 Note: "${note.title}"`,
+    },
+  ];
+  
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id: 1,
     result: {
-      content: [
-        {
-          type: 'text',
-          text: `📝 Note: "${note.title}"`,
-        },
-        {
-          type: 'widget',
-          url: widgetUrl,
-        },
-      ],
+      content,
     },
   });
 }
@@ -183,42 +204,39 @@ export async function handleSearchNotes(
 
   const result: NotesAPIResponse = await response.json();
   const notes = result.data as Note[];
-  const baseUrl = getBaseUrl(request);
-  const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-
+  
+  const content: Array<{ type: string; text?: string; url?: string }> = [];
+  
   if (notes.length === 0) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: 1,
-      result: {
-        content: [
-          {
-            type: 'text',
-            text: `🔍 No results found for "${args.query}"`,
-          },
-          {
-            type: 'widget',
-            url: widgetUrl,
-          },
-        ],
-      },
+    content.push({
+      type: 'text',
+      text: `🔍 No results found for "${args.query}"`,
     });
+  } else {
+    content.push({
+      type: 'text',
+      text: `🔍 Found ${notes.length} result${notes.length !== 1 ? 's' : ''} for "${args.query}"`,
+    });
+  }
+  
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
   }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id: 1,
     result: {
-      content: [
-        {
-          type: 'text',
-          text: `🔍 Found ${notes.length} result${notes.length !== 1 ? 's' : ''} for "${args.query}"`,
-        },
-        {
-          type: 'widget',
-          url: widgetUrl,
-        },
-      ],
+      content,
     },
   });
 }
@@ -257,23 +275,32 @@ export async function handleUpdateNote(
 
   const result: NotesAPIResponse = await response.json();
   const note = result.data as Note;
-  const baseUrl = getBaseUrl(request);
-  const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+  
+  const content: Array<{ type: string; text?: string; url?: string }> = [
+    {
+      type: 'text',
+      text: `✓ Updated note: "${note.title}"`,
+    },
+  ];
+  
+  try {
+    const baseUrl = getBaseUrl(request);
+    if (baseUrl && !baseUrl.includes('localhost')) {
+      const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+      content.push({
+        type: 'widget',
+        url: widgetUrl,
+      });
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not create widget URL:', error);
+  }
 
   return NextResponse.json({
     jsonrpc: '2.0',
     id: 1,
     result: {
-      content: [
-        {
-          type: 'text',
-          text: `✓ Updated note: "${note.title}"`,
-        },
-        {
-          type: 'widget',
-          url: widgetUrl,
-        },
-      ],
+      content,
     },
   });
 }
