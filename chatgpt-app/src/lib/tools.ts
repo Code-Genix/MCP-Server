@@ -26,6 +26,8 @@ export async function handleCreateNote(
 
   try {
     console.log(`📡 Calling Notes API: ${NOTES_API}/api/notes`);
+    console.log(`📡 Request body:`, JSON.stringify(args));
+    
     const response = await fetchWithTimeout(
       `${NOTES_API}/api/notes`,
       {
@@ -33,13 +35,16 @@ export async function handleCreateNote(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(args),
       },
-      10000 // Increased timeout for Vercel
+      15000 // Increased timeout for Vercel + ngrok
     );
 
+    console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+    
     if (!response.ok) {
       const errorText = await response.text().catch(() => response.statusText);
       console.error(`❌ Notes API error: ${response.status} ${errorText}`);
-      throw new Error(`Failed to create note: ${response.status} ${errorText}`);
+      console.error(`❌ Notes API URL was: ${NOTES_API}/api/notes`);
+      throw new Error(`Failed to create note: ${response.status} ${errorText}. API URL: ${NOTES_API}`);
     }
 
     const result: NotesAPIResponse = await response.json();
