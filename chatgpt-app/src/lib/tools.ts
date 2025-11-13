@@ -16,7 +16,17 @@ export async function handleCreateNote(
   args: { title: string; content: string; tags?: string[] },
   request: NextRequest
 ): Promise<NextResponse> {
+  // Check if NOTES_API is configured
+  if (!NOTES_API || NOTES_API.includes('localhost')) {
+    const errorMsg = process.env.NODE_ENV === 'production' 
+      ? 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel.'
+      : `Notes API not accessible: ${NOTES_API}. Make sure notes backend is running on port 3000.`;
+    console.error(`❌ ${errorMsg}`);
+    throw new Error(errorMsg);
+  }
+
   try {
+    console.log(`📡 Calling Notes API: ${NOTES_API}/api/notes`);
     const response = await fetchWithTimeout(
       `${NOTES_API}/api/notes`,
       {
@@ -24,7 +34,7 @@ export async function handleCreateNote(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(args),
       },
-      5000
+      10000 // Increased timeout for Vercel
     );
 
     if (!response.ok) {
@@ -81,7 +91,15 @@ export async function handleCreateNote(
 export async function handleListNotes(
   request: NextRequest
 ): Promise<NextResponse> {
-  const response = await fetchWithTimeout(`${NOTES_API}/api/notes`, {}, 5000);
+  // Check if NOTES_API is configured
+  if (!NOTES_API || NOTES_API.includes('localhost')) {
+    const errorMsg = process.env.NODE_ENV === 'production' 
+      ? 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel.'
+      : `Notes API not accessible: ${NOTES_API}. Make sure notes backend is running on port 3000.`;
+    throw new Error(errorMsg);
+  }
+
+  const response = await fetchWithTimeout(`${NOTES_API}/api/notes`, {}, 10000);
 
   if (!response.ok) {
     throw new Error(`Failed to list notes: ${response.statusText}`);
