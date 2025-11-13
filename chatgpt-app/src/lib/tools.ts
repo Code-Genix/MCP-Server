@@ -16,11 +16,10 @@ export async function handleCreateNote(
   args: { title: string; content: string; tags?: string[] },
   request: NextRequest
 ): Promise<NextResponse> {
-  // Check if NOTES_API is configured
-  if (!NOTES_API || NOTES_API.includes('localhost')) {
-    const errorMsg = process.env.NODE_ENV === 'production' 
-      ? 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel.'
-      : `Notes API not accessible: ${NOTES_API}. Make sure notes backend is running on port 3000.`;
+  // Check if NOTES_API is configured (only check in production/Vercel)
+  // In local development, localhost:3000 is fine
+  if (process.env.NODE_ENV === 'production' && (!NOTES_API || NOTES_API.includes('localhost'))) {
+    const errorMsg = 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel to your ngrok URL for port 3000.';
     console.error(`❌ ${errorMsg}`);
     throw new Error(errorMsg);
   }
@@ -91,12 +90,9 @@ export async function handleCreateNote(
 export async function handleListNotes(
   request: NextRequest
 ): Promise<NextResponse> {
-  // Check if NOTES_API is configured
-  if (!NOTES_API || NOTES_API.includes('localhost')) {
-    const errorMsg = process.env.NODE_ENV === 'production' 
-      ? 'Notes API not configured. Please set NOTES_API_URL environment variable in Vercel.'
-      : `Notes API not accessible: ${NOTES_API}. Make sure notes backend is running on port 3000.`;
-    throw new Error(errorMsg);
+  // Check if NOTES_API is configured (only check in production/Vercel)
+  if (process.env.NODE_ENV === 'production' && (!NOTES_API || NOTES_API.includes('localhost'))) {
+    throw new Error('Notes API not configured. Please set NOTES_API_URL environment variable in Vercel to your ngrok URL for port 3000.');
   }
 
   const response = await fetchWithTimeout(`${NOTES_API}/api/notes`, {}, 10000);
