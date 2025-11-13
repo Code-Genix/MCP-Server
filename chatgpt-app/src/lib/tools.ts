@@ -44,28 +44,23 @@ export async function handleCreateNote(
       },
     ];
     
-    // Add widget for visual display
-    // Note: Widgets may cause 424 errors if ChatGPT can't fetch them
-    // If you see 424 errors, widgets will be automatically skipped
-    try {
-      const baseUrl = getBaseUrl(request);
-      // Only add widget for HTTPS URLs (ngrok or production)
-      if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-        const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-        if (widgetUrl && widgetUrl.startsWith('https://')) {
-          content.push({
-            type: 'widget',
-            url: widgetUrl,
-          });
-          console.log(`✅ Added widget URL: ${widgetUrl}`);
-        }
-      } else {
-        console.log(`⚠️ Skipping widget - baseUrl: ${baseUrl}`);
-      }
-    } catch (error) {
-      console.warn('⚠️ Could not create widget URL (continuing without widget):', error);
-      // Continue without widget - operation still succeeds
-    }
+    // Widgets disabled: ChatGPT Apps SDK has issues fetching widgets via ngrok (424 errors)
+    // Widgets work better when deployed to Vercel
+    // To re-enable: Uncomment the code below after deploying to Vercel
+    // try {
+    //   const baseUrl = getBaseUrl(request);
+    //   if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
+    //     const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
+    //     if (widgetUrl && widgetUrl.startsWith('https://')) {
+    //       content.push({
+    //         type: 'widget',
+    //         url: widgetUrl,
+    //       });
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.warn('⚠️ Could not create widget URL:', error);
+    // }
 
     return NextResponse.json({
       jsonrpc: '2.0',
@@ -110,21 +105,8 @@ export async function handleListNotes(
     });
   }
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-      if (widgetUrl && widgetUrl.startsWith('https://')) {
-        content.push({
-          type: 'widget',
-          url: widgetUrl,
-        });
-      }
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-  }
+  // Widgets disabled: ChatGPT Apps SDK has issues fetching widgets via ngrok (424 errors)
+  // TODO: Re-enable widgets after deploying to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -168,21 +150,8 @@ export async function handleGetNote(
     },
   ];
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'note-detail', note);
-      if (widgetUrl && widgetUrl.startsWith('https://')) {
-        content.push({
-          type: 'widget',
-          url: widgetUrl,
-        });
-      }
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-  }
+  // Widgets disabled: ChatGPT Apps SDK has issues fetching widgets via ngrok (424 errors)
+  // TODO: Re-enable widgets after deploying to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -231,21 +200,8 @@ export async function handleSearchNotes(
     });
   }
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'notes-list', notes);
-      if (widgetUrl && widgetUrl.startsWith('https://')) {
-        content.push({
-          type: 'widget',
-          url: widgetUrl,
-        });
-      }
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-  }
+  // Widgets disabled: ChatGPT Apps SDK has issues fetching widgets via ngrok (424 errors)
+  // TODO: Re-enable widgets after deploying to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
@@ -298,21 +254,8 @@ export async function handleUpdateNote(
     },
   ];
   
-  // Add widget for visual display
-  try {
-    const baseUrl = getBaseUrl(request);
-    if (baseUrl && baseUrl.startsWith('https://') && !baseUrl.includes('localhost')) {
-      const widgetUrl = createWidgetUrl(baseUrl, 'note-card', note);
-      if (widgetUrl && widgetUrl.startsWith('https://')) {
-        content.push({
-          type: 'widget',
-          url: widgetUrl,
-        });
-      }
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not create widget URL:', error);
-  }
+  // Widgets disabled: ChatGPT Apps SDK has issues fetching widgets via ngrok (424 errors)
+  // TODO: Re-enable widgets after deploying to Vercel
 
   return NextResponse.json({
     jsonrpc: '2.0',
